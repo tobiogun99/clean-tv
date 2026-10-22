@@ -5,6 +5,8 @@ nothing else: no ads, no recommendation rows, no background work. About 700 KB, 
 
 The stock Google TV launcher stays installed as a backup, and every change has a one-line undo.
 
+<p align="center"><img src="docs/tour.gif" alt="Clean TV home screen: moving along the dock with music playing" width="800"></p>
+
 > **Tested on one device so far:** Chromecast with Google TV (4K, Android 14). See
 > [Tested devices](#tested-devices) before trying it on anything else, and please report what happens.
 
@@ -23,6 +25,19 @@ The stock Google TV launcher stays installed as a backup, and every change has a
 - **Remote:** OK opens, hold OK for options (move, remove, app info, uninstall). Home opens Clean TV;
   holding Home still opens Google's side panel.
 
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Home screen with the dock](docs/home.jpg) | ![Now playing island opened into a player](docs/island.jpg) |
+| **Home:** clock, weather, now playing and a frosted dock | **Now playing:** press Up and the island becomes a player |
+| ![List layout over a misty forest](docs/list.jpg) | ![Wallpaper picker with live preview](docs/wallpaper.jpg) |
+| **List layout:** apps down the side, the photo up front | **Wallpaper picker:** browse and the whole screen previews it |
+| ![Layout settings with a live preview](docs/settings-layout.jpg) | ![Art Mode on a starry mountain](docs/art.jpg) |
+| **Settings:** every change previews the real home screen | **Art Mode:** just the photo, plus what's playing |
+
+<sub>Photos on Unsplash by Jonny James, Dejan Zakic and Haseeb Jamil (see [notices](THIRD_PARTY_NOTICES.md)). Clean TV ships without photos; you add your own.</sub>
+
 ## Quick start
 
 **New to this? Follow the [step-by-step setup guide](SETUP.md).** It assumes no developer experience
@@ -31,9 +46,9 @@ and covers Mac, Linux and Windows. The short version:
 You need a Mac or Linux computer on the same Wi-Fi as the TV.
 
 ```bash
+brew install android-platform-tools   # or: sudo apt install adb
 git clone https://github.com/tobiogun99/clean-tv.git && cd clean-tv
-./setup.sh          # one time: JDK 17 + Android SDK (or use a prebuilt APK from Releases)
-./build.sh          # -> build/cleantv.apk, signed with your own key (keystore.jks, made on first build)
+./tv.sh download                       # the ready-made app from Releases (or ./setup.sh && ./build.sh)
 ```
 
 On the TV, turn on developer mode and wireless debugging:

@@ -1,6 +1,6 @@
 # Set up Clean TV on your TV, step by step
 
-About 20 minutes the first time. You don't need to know how to code. You'll copy and paste a
+About 15 minutes the first time. You don't need to know how to code. You'll copy and paste a
 few commands into a terminal, and every change can be undone with one command.
 
 **You need**
@@ -8,49 +8,50 @@ few commands into a terminal, and every change can be undone with one command.
 - A Google TV (Chromecast with Google TV is the tested one; see the README for others) and its remote.
 - A Mac or Linux computer **on the same Wi-Fi as the TV**. Windows works too; see
   [Windows](#windows) at the end.
-- About 1 GB of free space for the tools.
 
 Nothing is deleted from your TV. Google's own home screen stays installed as a backup.
 
 ---
 
-## Step 1: Get Clean TV and the tools on your computer
+## Step 1: Get Clean TV onto your computer
 
 Open **Terminal** (Mac: press ⌘ Space, type "Terminal", press Return). Copy each grey box below,
 paste it into Terminal, and press Return. Wait for each one to finish before the next.
 
-Download Clean TV:
+**1. Install `adb`,** the small tool that lets your computer talk to the TV.
+
+Mac (needs [Homebrew](https://brew.sh); install that first if `brew` isn't found):
+
+```bash
+brew install android-platform-tools
+```
+
+Linux (Ubuntu/Debian):
+
+```bash
+sudo apt install adb curl
+```
+
+**2. Download Clean TV:**
 
 ```bash
 git clone https://github.com/tobiogun99/clean-tv.git && cd clean-tv
 ```
 
-> No `git`? On a Mac, the first time you run this a box pops up offering to install it. Click
-> Install, then run the line again. Or download the ZIP from the GitHub page, unzip it, and `cd`
-> into the folder.
+> No `git`? On a Mac a box pops up offering to install it: click Install and run the line again.
+> Or click **Code → Download ZIP** on the GitHub page, unzip it, and in Terminal type `cd `
+> (with a space), drag the unzipped folder onto the Terminal window, and press Return.
 
-Install the build tools (Java and Android's SDK). It explains what it's about to do and asks
-before installing anything:
-
-```bash
-./setup.sh
-```
-
-At the end it prints a few `export …` lines. Copy them all, paste them into Terminal, press Return.
-
-Build the app:
+**3. Get the app itself** (the ready-made version from the Releases page):
 
 ```bash
-./build.sh
+./tv.sh download
 ```
 
-You should see `Built build/cleantv.apk`. The first build also creates `keystore.jks`, your
-personal signing key. **Keep it.** Future updates of Clean TV must be signed with the same key.
+You should see `Downloaded cleantv-v….apk`. That's everything for your computer.
 
-> **Skipping the build:** download the latest `cleantv-v….apk` from the
-> [Releases page](https://github.com/tobiogun99/clean-tv/releases/latest), make a folder called
-> `build` inside the Clean TV folder, put the file in it and rename it to `cleantv.apk`. Then skip
-> `setup.sh` and `build.sh`. You still need `adb`: on a Mac, `brew install android-platform-tools`.
+> **Want to build it yourself instead?** Only needed if you're changing the code or adding your
+> own fonts. See [Building from source](#building-from-source) at the end.
 
 ---
 
@@ -232,6 +233,35 @@ Open **All apps** (top right), hold OK on the app and choose **Add to dock**.
 
 **Something else.** Run `./tv.sh doctor` and open an issue on GitHub with its output, your TV
 model and Android version.
+
+---
+
+## Building from source
+
+Skip this unless you want to change Clean TV or add fonts you own (put them in `fonts-private/`).
+
+Install the build tools (Java 17 and Android's SDK, about 1 GB). It explains what it'll do and
+asks before installing anything:
+
+```bash
+./setup.sh
+```
+
+At the end it prints a few `export …` lines. Copy them all, paste them into Terminal, press Return.
+Then build:
+
+```bash
+./build.sh
+```
+
+You should see `Built build/cleantv.apk`. Continue with `./tv.sh install` as in Step 5.
+
+The first build creates `keystore.jks`, your own signing key. **Keep it:** later builds must be
+signed with the same key to install over the earlier one. A version you build yourself and the
+ready-made download are signed differently, so to switch between them, uninstall first
+(`adb uninstall io.github.cleantv`).
+
+To use Android Studio instead, open the folder; it builds with Gradle from the same sources.
 
 ---
 

@@ -103,8 +103,17 @@ case "${1:-help}" in
     say "From now on (until the TV restarts): ./tv.sh connect $ip:5555"
     say "Anyone on your network could also try that port; the TV asks you to approve new computers." ;;
 
+  download)       # get the latest ready-made app from GitHub (no build tools needed)
+    url=$(curl -fsSL https://api.github.com/repos/tobiogun99/clean-tv/releases/latest \
+      | grep -oE '"browser_download_url": *"[^"]+\.apk"' | head -1 | sed -E 's/.*"(https[^"]+)"/\1/')
+    [ -n "$url" ] || { say "Couldn't find a release. Check your internet, or build it yourself: ./build.sh"; exit 1; }
+    mkdir -p build
+    curl -fL --progress-bar -o build/cleantv.apk "$url"
+    say "Downloaded $(basename "$url"). Next: ./tv.sh install" ;;
+
   install)        # install build/cleantv.apk (re-arms the Home button after updates)
     need_device
+    [ -f build/cleantv.apk ] || { say "No app to install yet. Run ./tv.sh download (or ./build.sh) first."; exit 1; }
     adb install -r build/cleantv.apk
     # An app update leaves the service bound but silently drops its key filter; re-enabling restores it.
     if home_service_enabled; then

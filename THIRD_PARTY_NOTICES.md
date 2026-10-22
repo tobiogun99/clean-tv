@@ -9,6 +9,17 @@
 
 Both files are unmodified upstream copies (SHA-256 `73894e04…de9659` and `8a08d13f…4d7c1`).
 
+## Screenshots
+
+The photos in `docs/` screenshots are from [Unsplash](https://unsplash.com) under the
+[Unsplash License](https://unsplash.com/license). They are not part of the app.
+
+- Sunset over layered ridges: [Jonny James](https://unsplash.com/@jonnyjames2)
+- Misty evergreen forest: [Dejan Zakic](https://unsplash.com/@dejanzakic)
+- Snowy peak under stars: [Haseeb Jamil](https://unsplash.com/@haseebjkhan)
+
+Album art visible in the now-playing screenshots belongs to its respective owners.
+
 ## Design
 
 The Settings structure (grouped overview, two-pane pages with a live preview, List/Dock layouts,
