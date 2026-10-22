@@ -39,6 +39,9 @@ final class SettingsPanel extends FrameLayout {
         void apply(int index);
     }
 
+    private static final int PREVIEW_W = 480, PREVIEW_H = 270, PREVIEW_MARGIN = 48;
+    private static final int PREVIEW_LEFT = 960 - PREVIEW_MARGIN - PREVIEW_W; // dp; TVs are 960dp wide
+
     static final String[] LAYOUTS = {"list", "dock"};
     static final String[] DISPLAYS = {"text", "icons", "both"};
     static final String[] FOCUS = {"glass", "type"};
@@ -70,7 +73,8 @@ final class SettingsPanel extends FrameLayout {
         detailCol = new LinearLayout(c);
         detailCol.setOrientation(LinearLayout.VERTICAL);
         detailCol.setPadding(px(64), px(28), 0, px(32));
-        detail.addView(detailCol, new LayoutParams(px(560), -1));
+        // Left column ends before the preview starts (960 - 48 margin - 480 preview = 432dp), so nothing hides behind it.
+        detail.addView(detailCol, new LayoutParams(px(PREVIEW_LEFT - 20), -1));
 
         FrameLayout frame = new FrameLayout(c);
         GradientDrawable border = new GradientDrawable();
@@ -81,8 +85,8 @@ final class SettingsPanel extends FrameLayout {
         preview = new ImageView(c);
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
         frame.addView(preview, new LayoutParams(-1, -1));
-        LayoutParams flp = new LayoutParams(px(560), px(315), Gravity.END | Gravity.CENTER_VERTICAL);
-        flp.rightMargin = px(56);
+        LayoutParams flp = new LayoutParams(px(PREVIEW_W), px(PREVIEW_H), Gravity.END | Gravity.CENTER_VERTICAL);
+        flp.rightMargin = px(PREVIEW_MARGIN);
         detail.addView(frame, flp);
         previewFrame = frame;
         addView(detail, new LayoutParams(-1, -1));
@@ -171,7 +175,6 @@ final class SettingsPanel extends FrameLayout {
                 detailCol.addView(first);
                 TextView about = text("Glass slides a soft plate between apps. Type keeps it to the text: "
                         + "the selected app stays bright and the rest dim.", 14, 0.6f);
-                about.setMaxWidth(px(400)); // wrap before the preview
                 detailCol.addView(about, wrap(0, px(14), px(40), 0));
                 break;
             default: // google
@@ -231,7 +234,8 @@ final class SettingsPanel extends FrameLayout {
         g.addView(text(title, 15, 0.7f), wrap(px(4), 0, 0, px(6)));
         final LinearLayout opts = new LinearLayout(getContext());
         opts.setTag("options");
-        if (fontSamples) opts.setOrientation(LinearLayout.VERTICAL); // font names are long: one per line
+        final boolean stacked = fontSamples || names.length > 3; // too wide for one row beside the preview
+        if (stacked) opts.setOrientation(LinearLayout.VERTICAL);
         for (int i = 0; i < names.length; i++) {
             final int index = i;
             final TextView o = text(names[i], 22, 1f);
@@ -252,7 +256,7 @@ final class SettingsPanel extends FrameLayout {
                 refreshPreview();
             });
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
-            if (fontSamples) lp.bottomMargin = px(4);
+            if (stacked) lp.bottomMargin = px(4);
             else lp.rightMargin = px(10);
             opts.addView(o, lp);
         }
@@ -296,7 +300,7 @@ final class SettingsPanel extends FrameLayout {
         if (previewFrame.getVisibility() != VISIBLE) return;
         // after the home screen has laid itself out with the new choice
         postDelayed(() -> {
-            Bitmap b = host.snapshot(px(560), px(315));
+            Bitmap b = host.snapshot(px(PREVIEW_W), px(PREVIEW_H));
             if (b != null) preview.setImageBitmap(b);
         }, 140);
     }
