@@ -47,8 +47,9 @@ Build the app:
 You should see `Built build/cleantv.apk`. The first build also creates `keystore.jks`, your
 personal signing key. **Keep it.** Future updates of Clean TV must be signed with the same key.
 
-> **Skipping the build:** if there's a ready-made `cleantv.apk` on the project's Releases page,
-> you can download it, put it in a folder called `build` inside the Clean TV folder, and skip
+> **Skipping the build:** download the latest `cleantv-v….apk` from the
+> [Releases page](https://github.com/tobiogun99/clean-tv/releases/latest), make a folder called
+> `build` inside the Clean TV folder, put the file in it and rename it to `cleantv.apk`. Then skip
 > `setup.sh` and `build.sh`. You still need `adb`: on a Mac, `brew install android-platform-tools`.
 
 ---
@@ -240,7 +241,7 @@ model and Android version.
 
 1. Install [Android SDK Platform-Tools](https://developer.android.com/tools/releases/platform-tools)
    (it contains `adb`), unzip it, and open PowerShell in that folder.
-2. Download `cleantv.apk` from the project's Releases page.
+2. Download the latest `cleantv-v….apk` from the [Releases page](https://github.com/tobiogun99/clean-tv/releases/latest) and rename it to `cleantv.apk`.
 3. Do Steps 2 and 3 on the TV, then run these, replacing the IP, ports and code with the ones
    shown on the TV's Wireless debugging screens:
 
