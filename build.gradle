@@ -1,0 +1,111 @@
+// Gradle build for Android Studio users. It uses the same files as ./build.sh (nothing is moved):
+// AndroidManifest.xml, src/, res/, assets/, plus your own fonts from fonts-private/ if present.
+// App id, name and version come from config.sh, so there is one place to change them.
+//
+//   ./gradlew assembleDebug     -> build/outputs/apk/debug/cleantv-debug.apk
+//   ./gradlew assembleRelease   -> build/outputs/apk/release/cleantv-release.apk
+//                                  (signed with keystore.jks, or $KEYSTORE / $KEYSTORE_PASS)
+//
+// Android Gradle plugin 9.4 needs SDK build-tools 36.0.0 or newer (./build.sh is happy with 35).
+// Android Studio, or Gradle itself once the SDK licences are accepted, installs it on first build.
+
+plugins {
+    id 'com.android.application' version '9.4.1'
+}
+
+// --- config.sh (KEY=value lines, '#' starts a comment) ----------------------
+def config = [:]
+file('config.sh').eachLine { line ->
+    def m = line =~ /^\s*([A-Za-z_][A-Za-z0-9_]*)=([^#]*)/
+    if (m.find()) config[m.group(1)] = m.group(2).trim().replaceAll(/^["']|["']$/, '')
+}
+['APP_ID', 'VERSION_CODE', 'VERSION_NAME'].each { key ->
+    if (!config[key]) throw new GradleException("config.sh is missing $key")
+}
+
+// --- release signing: same key and defaults as build.sh ---------------------
+def keystoreFile = file(System.getenv('KEYSTORE') ?: 'keystore.jks')
+def keystorePass = System.getenv('KEYSTORE_PASS') ?: 'android'
+
+android {
+    namespace = 'io.github.cleantv'          // Java package of the sources (R class lives here)
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = config.APP_ID
+        minSdk = 26
+        targetSdk = 35
+        versionCode = config.VERSION_CODE as int
+        versionName = config.VERSION_NAME
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+    }
+
+    androidResources {
+        noCompress += ['ttf', 'otf']        // fonts are read straight from the APK
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            release {
+                storeFile = keystoreFile
+                storePassword = keystorePass
+                keyAlias = 'cleantv'
+                keyPassword = keystorePass
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            if (keystoreFile.exists()) signingConfig = signingConfigs.release
+        }
+    }
+}
+
+base {
+    archivesName = 'cleantv'
+}
+
+// --- fonts-private/: your own fonts, never committed ------------------------
+// Staged into a generated assets folder so they land in the APK as assets/fonts-private/<file>.
+abstract class StageFontsPrivate extends DefaultTask {
+    @InputFiles @PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract ConfigurableFileCollection getFonts()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
+
+    @Inject abstract FileSystemOperations getFs()
+
+    @TaskAction
+    void stage() {
+        fs.sync {
+            from(fonts)
+            into(outputDir.dir('fonts-private'))
+        }
+    }
+}
+
+def stageFontsPrivate = tasks.register('stageFontsPrivate', StageFontsPrivate) {
+    fonts.from(fileTree('fonts-private') { include '*.ttf', '*.otf', '*.TTF', '*.OTF' })
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(stageFontsPrivate, { it.outputDir })
+    }
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="service_desc">Sends the Home button to Clean TV. Hold Home to open the stock Google TV home.</string>
+</resources>

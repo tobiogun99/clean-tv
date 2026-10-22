@@ -1,0 +1,22 @@
+# build output
+build/
+.gradle/
+local.properties
+*.apk
+
+# your signing key: keep it safe and private (updates must be signed with the same key)
+keystore.jks
+*.keystore
+
+# fonts you own but can't redistribute (see fonts-private/README.md)
+fonts-private/*
+!fonts-private/README.md
+
+# per-TV undo records written by tv.sh
+.tv-disabled
+.tv-screensaver
+
+# your own pictures and recordings
+wallpapers/
+recordings/
+.DS_Store

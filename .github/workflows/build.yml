@@ -1,0 +1,85 @@
+# Builds build/cleantv.apk with ./build.sh on every push and pull request.
+# Pushing a tag like v1.2.0 also publishes a GitHub Release with the APK.
+#
+# Release signing: add two repository secrets (Settings > Secrets and variables > Actions)
+#   KEYSTORE_BASE64  your keystore.jks, base64-encoded:  base64 -i keystore.jks | pbcopy
+#   KEYSTORE_PASS    its password (store and key password; the key alias must be "cleantv")
+# Without them the release APK is signed with a throwaway key made on the CI runner.
+name: build
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # only used to create the release on tags
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK packages
+        run: |
+          SM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SM" --licenses > /dev/null || true
+          "$SM" --install "platforms;android-35" "build-tools;35.0.0" > /dev/null
+          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
+
+      - name: Release keystore
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "KEYSTORE_PASS=$KEYSTORE_PASS" >> "$GITHUB_ENV"
+            echo "SIGNED_WITH=release" >> "$GITHUB_ENV"
+            echo "Signing with the keystore from repository secrets."
+          else
+            echo "SIGNED_WITH=ci" >> "$GITHUB_ENV"
+            echo "::warning::No KEYSTORE_BASE64 secret: the release APK is signed with a throwaway CI key."
+          fi
+
+      - name: Build
+        run: ./build.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cleantv-apk
+          path: build/cleantv.apk
+          if-no-files-found: error
+
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "$SIGNED_WITH" = release ]; then
+            APK="cleantv-$TAG.apk"
+            NOTES="Clean TV $TAG. Install with: adb install -r $APK"
+          else
+            APK="cleantv-$TAG-throwaway-ci-key.apk"
+            NOTES="Clean TV $TAG.
+
+          **Signed with a throwaway key generated on the CI runner** (no release keystore is configured for this repository). It installs fine on a TV that doesn't have Clean TV yet, but future updates will NOT install over it: Android refuses updates signed with a different key, so you would have to uninstall first (losing Clean TV's settings). For updates you can rely on, build it yourself with ./build.sh and keep your keystore.jks."
+          fi
+          cp build/cleantv.apk "$APK"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+          else
+            gh release create "$TAG" "$APK" --title "Clean TV $TAG" --notes "$NOTES"
+          fi
