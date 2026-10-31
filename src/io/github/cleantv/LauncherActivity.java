@@ -979,6 +979,14 @@ public final class LauncherActivity extends Activity {
         }
 
         @Override public void openTvSettings() { open(new Intent(Settings.ACTION_SETTINGS)); }
+
+        @Override public void openSystemPage(String action) {
+            try {
+                startActivity(new Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            } catch (Exception e) { // this TV has no direct screen for it
+                open(new Intent(Settings.ACTION_SETTINGS));
+            }
+        }
     };
 
     private void openPicker() {

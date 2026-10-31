@@ -31,6 +31,7 @@ final class SettingsPanel extends FrameLayout {
         void openAllApps();
         void openStockHome();
         void openTvSettings();
+        void openSystemPage(String action); // a specific Android settings screen, or the main one
     }
 
     /** One row of mutually exclusive choices. */
@@ -125,7 +126,7 @@ final class SettingsPanel extends FrameLayout {
         overview.addView(row(i++, "Font", Fonts.name(getContext()), () -> showDetail("font")));
         overview.addView(row(i++, "Focus", title(p.getString("focus", "glass")), () -> showDetail("focus")));
         overview.addView(row(i++, "Apps on Home", host.homeAppCount() + " apps", host::openAllApps));
-        overview.addView(row(i, "Google TV", "Stock home and TV settings", () -> showDetail("google")));
+        overview.addView(row(i, "Google TV", "Bluetooth, Wi‑Fi and TV settings", () -> showDetail("google")));
         overview.addView(hint("Open selected group"), wrap(0, px(12), 0, 0));
         overview.getChildAt(1 + f).requestFocus();
         overview.post(() -> overview.getChildAt(1 + f).requestFocus());
@@ -181,7 +182,11 @@ final class SettingsPanel extends FrameLayout {
                 detailCol.addView(text("Google TV", 34, 1f), wrap(0, px(4), 0, px(18)));
                 first = row(-1, "Google TV home", "The stock home screen, kept as a backup", host::openStockHome);
                 detailCol.addView(first);
-                detailCol.addView(row(-1, "TV settings", "Android TV settings", host::openTvSettings));
+                detailCol.addView(row(-1, "Bluetooth", "Pair headphones, speakers, controllers and remotes",
+                        () -> host.openSystemPage(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS)));
+                detailCol.addView(row(-1, "Wi‑Fi", "Networks and internet",
+                        () -> host.openSystemPage(android.provider.Settings.ACTION_WIFI_SETTINGS)));
+                detailCol.addView(row(-1, "TV settings", "Everything else in Android TV settings", host::openTvSettings));
         }
         detailCol.addView(hint("google".equals(id) || "background".equals(id) ? "Open selected item"
                 : "Apply selected setting"), wrap(0, px(24), 0, 0));
